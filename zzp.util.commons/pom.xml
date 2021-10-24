@@ -6,6 +6,7 @@
 
     <groupId>com.zzp</groupId>
     <artifactId>zzp.util.commons</artifactId>
+    <packaging>jar</packaging>
     <version>0.0.1</version>
 
     <build>
