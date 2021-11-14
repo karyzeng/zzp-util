@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.zzp.convert.utils.ConvertUtils;
-import com.zzp.sort.utils.MapSort;
+import com.zzp.sort.utils.MapSortUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -340,7 +340,7 @@ public class HttpRequestUtils {
      * @return String 签名sign
      */
     public static String getSignByMD5(String appsecret, Map<String, String> params) {
-        Map<String, String> sortMap = MapSort.sortMapByKey(params);
+        Map<String, String> sortMap = MapSortUtils.sortMapByKey(params);
         StringBuffer sBuffer = new StringBuffer();
         sBuffer.append(appsecret);
         for (Map.Entry<String, String> entry : sortMap.entrySet()) {
