@@ -54,6 +54,11 @@ public class DateUtils {
 		System.out.println(hourToSeconds(new BigDecimal("1.50000")));
 		Date date = org.apache.commons.lang3.time.DateUtils.parseDate("2021-06-09 13:41:25", "yyyy-MM-dd HH:mm:ss");
 		System.out.println(addSecondToDate(date, hourToSeconds(new BigDecimal("1.50000"))));
+
+		String dateStart = "2022-06-01";
+		String dateEnd = "2022-06-01";
+		List<Map<String, String>> dueDates = getDueDates(dateStart, dateEnd);
+		System.out.println(dueDates);
 	}
 	
 	/**
@@ -101,14 +106,25 @@ public class DateUtils {
 	 */
 	public static String getMonthLastDay(String date) {
 		try {
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(dateFormat.parse(date));
-			calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-			return dateFormat.format(calendar.getTime());
+			return dateFormat.format(getMonthLastDay(dateFormat.parse(date)));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * 根据date来获取当前月的最后一天
+	 *
+	 * @param date 日期
+	 *
+	 * @return String
+	 */
+	public static Date getMonthLastDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+		return calendar.getTime();
 	}
 
 	/**
@@ -120,14 +136,24 @@ public class DateUtils {
 	 */
 	public static String getMonthFirstDay(String date) {
 		try {
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(dateFormat.parse(date));
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
-			return dateFormat.format(calendar.getTime());
+			return dateFormat.format(getMonthFirstDay(dateFormat.parse(date)));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * 根据date来获取当前月的第一天
+	 *
+	 * @param date 日期
+	 * @return {@link Date}
+	 */
+	public static Date getMonthFirstDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		return calendar.getTime();
 	}
 	
 	/**
@@ -217,6 +243,19 @@ public class DateUtils {
 	}
 
 	/**
+	 * 根据date获取num个月之后的日期
+	 * @param date 日期字符串，格式如2020-02-14
+	 * @param num 月数，正数为未来的月份，负数为过去的月份
+	 * @return
+	 */
+	public static Date getNumFutureMonthDate(Date date, Integer num) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.MONTH, num);
+		return calendar.getTime();
+	}
+
+	/**
 	 * 根据date获取num天之后或之前的日期
 	 * @param dateStr date 日期字符串，格式如2020-02-14
 	 * @param num 天数，正数为未来的天数，负数为过去的天数
@@ -240,14 +279,24 @@ public class DateUtils {
 	 */
 	public static String getNumDayDate(Date date, Integer num) {
 		try {
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(date);
-			calendar.add(Calendar.DAY_OF_MONTH, num);
-			return DateFormatUtils.format(calendar.getTime(), FORMAT_yyyy_MM_dd);
+			return DateFormatUtils.format(getNumDayDateReturnData(date, num), FORMAT_yyyy_MM_dd);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * 根据date获取num天之后或之前的日期
+	 * @param date date 日期
+	 * @param num 天数，正数为未来的天数，负数为过去的天数
+	 * @return
+	 */
+	public static Date getNumDayDateReturnData(Date date, Integer num) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.DAY_OF_MONTH, num);
+		return calendar.getTime();
 	}
 
 	/**
@@ -299,6 +348,64 @@ public class DateUtils {
 			startDateStr = endDateStr;
 		}
 		return list;
+	}
+
+	/**
+	 * 将时间范围转换为按月份显示的时间区间列表
+	 * 示例
+	 * 参数：[2021-05-12, 2021-06-15]
+	 * 结果：[
+	 * 			["dueDateStart":"2021-05-12", "dueDateEnd":"2021-05-31"],
+	 * 			["dueDateStart":"2021-06-01", "dueDateEnd":"2021-06-15"]
+	 * 		]
+	 *
+	 * @param dateStartStr 开始时间，格式为yyyy-MM-dd
+	 * @param dateEndStr   结束时间，格式为yyyy-MM-dd
+	 * @return {@link List<Map<String, String>>}
+	 */
+	public static List<Map<String, String>> getDueDates(String dateStartStr, String dateEndStr) {
+		Date dateStart = convertStringToDate(dateStartStr, FORMAT_yyyy_MM_dd);
+		Date dateEnd = convertStringToDate(dateEndStr, FORMAT_yyyy_MM_dd);
+
+		if (dateStart == null || dateEnd == null) {
+			return null;
+		}
+
+		if (dateStart.getTime() > dateEnd.getTime()) {
+			return null;
+		}
+
+		Date dueDateStart = dateStart; // 【区间开始时间】
+		Date dueDateEnd = getMonthLastDay(dateStart); // 【区间结束时间】，其实是【开始时间】所在月的最后一天
+		List<Map<String, String>> dueDates = new ArrayList<Map<String, String>>();
+		if (dueDateEnd.getTime() >= dateEnd.getTime()) {
+			// 如果【区间结束时间】大于或者等于【结束时间】
+			Map<String, String> dueDate = new HashMap<String, String>();
+			dueDate.put("dueDateStart", DateFormatUtils.format(dueDateStart, FORMAT_yyyy_MM_dd));
+			dueDate.put("dueDateEnd", DateFormatUtils.format(dateEnd, FORMAT_yyyy_MM_dd));
+			dueDates.add(dueDate);
+			return dueDates;
+		}
+
+		while (dueDateEnd.getTime() < dateEnd.getTime()) {
+			// 当【区间结束时间】小于【结束时间】
+			Map<String, String> dueDate = new HashMap<String, String>();
+			dueDate.put("dueDateStart", DateFormatUtils.format(dueDateStart, FORMAT_yyyy_MM_dd));
+			dueDate.put("dueDateEnd", DateFormatUtils.format(dueDateEnd, FORMAT_yyyy_MM_dd));
+			dueDates.add(dueDate);
+			dueDateStart = getNumDayDateReturnData(dueDateEnd, 1); // 将【区间结束时间】 + 1天赋值给【区间开始时间】
+			dueDateEnd = getMonthLastDay(dueDateStart); // 获取【区间开始时间】所在月的最后一天赋值给【区间结束时间】
+		}
+
+		if (dueDateEnd.getTime() >= dateEnd.getTime()) {
+			// 最后判断【区间结束时间】大于等于【结束时间】
+			Map<String, String> dueDate = new HashMap<String, String>();
+			dueDate.put("dueDateStart", DateFormatUtils.format(dueDateStart, FORMAT_yyyy_MM_dd));
+			dueDate.put("dueDateEnd", DateFormatUtils.format(dateEnd, FORMAT_yyyy_MM_dd));
+			dueDates.add(dueDate);
+		}
+
+		return dueDates;
 	}
 
 	/**
