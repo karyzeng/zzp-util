@@ -59,6 +59,22 @@ public class DateUtils {
 		String dateEnd = "2022-06-01";
 		List<Map<String, String>> dueDates = getDueDates(dateStart, dateEnd);
 		System.out.println(dueDates);
+
+		// 测试时间区间交集
+		long as = convertStringToDate("2022-01-01 00:00:00", FORMAT_yyyy_MM_dd_HH_mm_ss).getTime();
+		long ae = convertStringToDate("2022-03-15 23:59:59", FORMAT_yyyy_MM_dd_HH_mm_ss).getTime();
+		long bs = convertStringToDate("2022-03-16 00:00:00", FORMAT_yyyy_MM_dd_HH_mm_ss).getTime();
+		long be = convertStringToDate("2022-05-20 23:59:59", FORMAT_yyyy_MM_dd_HH_mm_ss).getTime();
+		long cs = convertStringToDate("2022-05-21 00:00:00", FORMAT_yyyy_MM_dd_HH_mm_ss).getTime();
+		long ce = convertStringToDate("2022-08-24 23:59:59", FORMAT_yyyy_MM_dd_HH_mm_ss).getTime();
+		Long[] a = new Long[]{as, ae};
+		Long[] b = new Long[]{bs, be};
+		Long[] c = new Long[]{cs, ce};
+		List<Long[]> list = new ArrayList<Long[]>();
+		list.add(a);
+		list.add(b);
+		list.add(c);
+		System.out.println(judgeInterval(list));
 	}
 	
 	/**
@@ -463,6 +479,36 @@ public class DateUtils {
 		map.put("dateStart", startDate);
 		map.put("dateEnd", endDate + " 23:59:59");
 		return map;
+	}
+
+	/**
+	 * 判断两个时间区间是否有交集
+	 * @param s1 第一个时间段开始时间戳
+	 * @param e1 第一个时间段结束时间戳
+	 * @param s2 第二个时间段开始时间戳
+	 * @param e2 第二个时间段结束时间戳
+	 * @return boolean true表示有交集，false表示没有交集
+	 */
+	public static boolean judgeInterval(Long s1, Long e1, Long s2, Long e2) {
+		return (e1 < s2 || e2 < s1) ? false : true;
+	}
+
+	/**
+	 * 判断多个时间区间中是否存在交集的情况
+	 *
+	 * @param timestampArrays 时间区间列表，时间区间为long数组类型，long[0]表示时间区间的开始时间戳，long[1]表示时间区间的结束时间戳
+	 * @return boolean
+	 */
+	public static boolean judgeInterval(List<Long[]> timestampArrays) {
+		for (int i = 0; i < timestampArrays.size() - 1; i++) {
+			for (int j = i + 1; j < timestampArrays.size(); j++) {
+				boolean intersectionSign = judgeInterval(timestampArrays.get(i)[0], timestampArrays.get(i)[1], timestampArrays.get(j)[0], timestampArrays.get(j)[1]);
+				if (intersectionSign) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
