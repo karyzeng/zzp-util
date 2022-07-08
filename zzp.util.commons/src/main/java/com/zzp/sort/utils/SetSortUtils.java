@@ -29,6 +29,8 @@ public class SetSortUtils {
         Set<Integer> sortSet = new TreeSet<Integer>(new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
+                // compare方法返回值大于0，会交换前后两个数位置
+                // compare方法返回值小于等于0，位置不交换
                 if (sortType.equals("desc")) {
                     return o2.compareTo(o1);//降序排序
                 } else if (sortType.equals("asc")) {
